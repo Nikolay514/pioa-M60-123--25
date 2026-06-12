@@ -2,7 +2,7 @@ import csv
 import json
 from pathlib import Path
 
-from src.db.backend.errors import TableValueError, TableFilterError, TableIncorrectJsonError, TableFileError, \
+from src.db.backend.errors import TableValueError, TableIncorrectJsonError, TableFileError, \
     TableIncorrectCSVError
 
 type StudentRecord = tuple[int, str, str, int, str]
