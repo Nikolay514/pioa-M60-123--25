@@ -1,0 +1,4 @@
+/.coverage
+/src/db/pycache/
+/src/db/backend/pycache/
+/src/tests/pycache/
