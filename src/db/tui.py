@@ -135,10 +135,7 @@ class Tui:
             rec = self.db.add(sid, fname, sname, age, sex)
             print(f"Запись добавлена: {rec}")
 
-            if isinstance(self.db, (StudentDBJSON, StudentDBCSV)):
-                save = input("Сохранить изменения в файл? (y/n): ").strip().lower()
-                if save == 'y':
-                    self._save_to_file()
+            
         except ValueError as e:
             print(f"Ошибка: {e}")
 
