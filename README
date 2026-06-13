@@ -1,11 +1,28 @@
+Структура проекта
+```
 ├── src/
-│   └── db/
-│       ├── backend/
-│       │   ├── __init__.py
-│       │   └── memory.py
-│       ├── __init__.py
-│       ├── __main__.py
-│       │
-│       └── tui.py
-│                                    
+│   ├── db/
+│   │    ├── backend/
+│   │    │   ├── backend_csv.py
+|   |    |   ├── backend_json.py
+|   |    |   ├──__init__.py
+│   │    │   └── memory.py
+│   │    ├── __init__.py
+│   │    ├── __main__.py
+│   │    │
+│   │    └── tui.py
+│
+} tests/
+│     ├── __init__.py
+│     ├── test_memory.py
+│     └── test_tui.py
+│
 └── README.md
+```
+
+Функцианал
+```
+Create_record - Создание записи
+Select - Получение записей по фильтрам
+Update - обновление записей по фильтрам
+Delete - удаление с фильтрами
