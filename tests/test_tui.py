@@ -1,8 +1,8 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from io import StringIO
 
-from src.db.backend.memory import StudentDB, StudentDBJSON, StudentDBCSV
+from src.db.backend.memory import StudentDB
 from src.db.tui import Tui
 
 
