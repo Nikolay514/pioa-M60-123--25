@@ -147,10 +147,15 @@ class StudentDBJSON(StudentDB):
             try:
                 with open(self._filepath, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-
+                  self._students.clear()
+                  
+                  
+              
                 self._students.clear()
                 if data == {}:
                     raise TableIncorrectJsonError('Файл пуст')
+                if 'header' not in data:
+                    raise TableIncorrectJsonError('Отсутствует ключ "header" в файле')
                 if data['header'] != ['student_id', 'first_name', 'second_name', 'age', 'sex']:
                     raise TableIncorrectJsonError('Неверный заголовок таблицы')
 
