@@ -32,109 +32,72 @@ class StudentDB:
         self._students.append(new_rec)
         return new_rec
 
-    def select(self,
-               student_id: int | None = None,
-               first_name: str | None = None,
-               second_name: str | None = None,
-               age: int | None = None,
-               sex: str | None = None,
-               ) -> list[StudentRecord]:
-        if all(p is None for p in (student_id, first_name, second_name, age, sex)):
-            return self._students.copy()
+    def _matches_filters(self, rec: StudentRecord, student_id=None, first_name=None, second_name=None, age=None, sex=None) -> bool:
+    if student_id is not None and rec[0] != student_id:
+        return False
+    if first_name is not None and rec[1] != first_name:
+        return False
+    if second_name is not None and rec[2] != second_name:
+        return False
+    if age is not None and rec[3] != age:
+        return False
+    if sex is not None and rec[4] != sex:
+        return False
+    return True
 
-        result: list[StudentRecord] = []
-        for rec in self._students:
-            if student_id is not None and rec[0] != student_id:
-                continue
-            if first_name is not None and rec[1] != first_name:
-                continue
-            if second_name is not None and rec[2] != second_name:
-                continue
-            if age is not None and rec[3] != age:
-                continue
-            if sex is not None and rec[4] != sex:
-                continue
+
+    def select(self, student_id=None, first_name=None, second_name=None, age=None, sex=None) -> list[StudentRecord]:
+    if all(p is None for p in (student_id, first_name, second_name, age, sex)):
+        return self._students.copy()
+
+    result: list[StudentRecord] = []
+    for rec in self._students:
+        if self._matches_filters(rec, student_id, first_name, second_name, age, sex):
             result.append(rec)
-        return result
+    return result
+  
 
-    def update(self,
-               student_id: int | None = None,
-               first_name: str | None = None,
-               second_name: str | None = None,
-               age: int | None = None,
-               sex: str | None = None,
-               new_first_name: str | None = None,
-               new_second_name: str | None = None,
-               new_age: int | None = None,
-               new_sex: str | None = None,
-               ) -> list[StudentRecord]:
-        updated = []
+    def update(self, student_id=None, first_name=None, second_name=None, age=None, sex=None,
+           new_first_name=None, new_second_name=None, new_age=None, new_sex=None) -> list[StudentRecord]:
+    updated = []
 
-        for i, rec in enumerate(self._students):
-            if student_id is not None and rec[0] != student_id:
-                continue
-            if first_name is not None and rec[1] != first_name:
-                continue
-            if second_name is not None and rec[2] != second_name:
-                continue
-            if age is not None and rec[3] != age:
-                continue
-            if sex is not None and rec[4] != sex:
-                continue
+    for i, rec in enumerate(self._students):
+        if not self._matches_filters(rec, student_id, first_name, second_name, age, sex):
+            continue
 
+        if new_age is not None and new_age < 0:
+            raise TableValueError('Возраст не может быть отрицательным')
 
-            if (new_age <= 0) and (new_age is not None):
-                raise TableValueError('Возраст не может быть отрицательным')
-            new_rec = (
-                rec[0],
-                new_first_name if new_first_name is not None else rec[1],
-                new_second_name if new_second_name is not None else rec[2],
-                new_age if new_age is not None else rec[3],
-                new_sex if new_sex is not None else rec[4],
-            )
-            self._students[i] = new_rec
-            updated.append(new_rec)
+        new_rec = (
+            rec[0],
+            new_first_name if new_first_name is not None else rec[1],
+            new_second_name if new_second_name is not None else rec[2],
+            new_age if new_age is not None else rec[3],
+            new_sex if new_sex is not None else rec[4],
+        )
+        self._students[i] = new_rec
+        updated.append(new_rec)
 
-        if not updated:
-            raise TableValueError("Нет записей, соответствующих фильтру.")
-        return updated
+    if not updated:
+        raise TableValueError("Нет записей, соответствующих фильтру.")
+    return updated
 
-    def delete(self,
-               student_id: int | None = None,
-               first_name: str | None = None,
-               second_name: str | None = None,
-               age: int | None = None,
-               sex: str | None = None,
-               ) -> list[StudentRecord] | None:
+    def delete(self, student_id=None, first_name=None, second_name=None, age=None, sex=None) -> list[StudentRecord]:
+    if all(p is None for p in (student_id, first_name, second_name, age, sex)):
+        return None
 
-        if all([col is None for col in (student_id, first_name, second_name, age, sex)]):
-            return None
-
-        deleted = []
-        i = 0
-        while i < len(self._students):
-            rec = self._students[i]
-            if student_id is not None and rec[0] != student_id:
-                i += 1
-                continue
-            if first_name is not None and rec[1] != first_name:
-                i += 1
-                continue
-            if second_name is not None and rec[2] != second_name:
-                i += 1
-                continue
-            if age is not None and rec[3] != age:
-                i += 1
-                continue
-            if sex is not None and rec[4] != sex:
-                i += 1
-                continue
-
+    deleted = []
+    i = 0
+    while i < len(self._students):
+        rec = self._students[i]
+        if self._matches_filters(rec, student_id, first_name, second_name, age, sex):
             deleted.append(self._students.pop(i))
-        if not deleted:
-            raise TableValueError("Нет записей, соответствующих фильтру.")
-        return deleted
+        else:
+            i += 1
 
+    if not deleted:
+        raise TableValueError("Нет записей, соответствующих фильтру.")
+    return deleted
 
 class StudentDBJSON(StudentDB):
     def __init__(self, filename: str = "students.json") -> None:
