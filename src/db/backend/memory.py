@@ -83,7 +83,7 @@ class StudentDB:
                 continue
 
 
-            if (new_age <= 0) and isinstance(new_ege,int):
+            if (new_age <= 0) and isinstance(new_age,int):
                 raise TableValueError('Возраст не может быть отрицательным')
             new_rec = (
                 rec[0],
@@ -209,7 +209,7 @@ class StudentDBCSV(StudentDB):
         super().__init__()
         self._filepath = Path(filename)
         self._load_from_file()
-
+    
     def _load_from_file(self) -> None:
         if self._filepath.exists():
             try:
@@ -234,7 +234,7 @@ class StudentDBCSV(StudentDB):
                             self._students.append(student)
 
             except (ValueError, csv.Error) as e:
-                TableIncorrectCSVError(f"Ошибка при чтении CSV файла: {e}")
+                raise TableIncorrectCSVError(f"Ошибка при чтении CSV файла: {e}")
 
     def _save_if_needed(self) -> None:
         self._filepath.parent.mkdir(parents=True, exist_ok=True)
