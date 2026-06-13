@@ -1,7 +1,8 @@
 import csv
 import json
 from pathlib import Path
-
+from src.db.backends.backend_json import JSONBackend
+from src.db.backends.backend_csv import CSVBackend
 from src.db.backend.errors import TableValueError, TableIncorrectJsonError, TableFileError, \
     TableIncorrectCSVError
 
@@ -99,128 +100,43 @@ class StudentDB:
         raise TableValueError("Нет записей, соответствующих фильтру.")
     return deleted
 
+
+
 class StudentDBJSON(StudentDB):
     def __init__(self, filename: str = "students.json") -> None:
         super().__init__()
-        self._filepath = Path(filename)
+        self._backend = JSONBackend(filename)
         self._load_from_file()
 
-    def _load_from_file(self) -> None:
-        if self._filepath.exists():
-            try:
-                with open(self._filepath, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                  self._students.clear()
-                  
-                  
-              
-                self._students.clear()
-                if data == {}:
-                    raise TableIncorrectJsonError('Файл пуст')
-                if 'header' not in data:
-                    raise TableIncorrectJsonError('Отсутствует ключ "header" в файле')
-                if data['header'] != ['student_id', 'first_name', 'second_name', 'age', 'sex']:
-                    raise TableIncorrectJsonError('Неверный заголовок таблицы')
+    def _load_from_file(self):
+        data = self._backend.load()
+        self._students.clear()
+        for record in data.get("students", []):
+            student: StudentRecord = (
+                record[0],
+                record[1],
+                record[2],
+                record[3],
+                record[4],
+            )
+            self._students.append(student)
 
-                for record in data.get("students", []):
-                    student: StudentRecord = (
-                        record[0],
-                        record[1],
-                        record[2],
-                        record[3],
-                        record[4],
-                    )
-                    self._students.append(student)
-
-            except (json.JSONDecodeError, FileNotFoundError) as e:
-                raise TableFileError(f"Ошибка при чтении JSON файла: {e}")
-            except (TypeError, ValueError, IndexError) as e:
-                raise TableIncorrectJsonError(f"Ошибка при разборе данных: {e}")
-
-    def _save_if_needed(self) -> None:
-        data = {
-            "students": [
-                list(student) for student in self._students],
-            "header" : ['student_id', 'first_name', 'second_name', 'age', 'sex']
-
-        }
-
-        self._filepath.parent.mkdir(parents=True, exist_ok=True)
-
-        with open(self._filepath, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-
-    def add(self, *args, **kwargs):
-        data = super().add(*args, **kwargs)
-        self._save_if_needed()
-        return data
-
-    def update(self, *args, **kwargs):
-        data = super().update(*args, **kwargs)
-        self._save_if_needed()
-        return data
-
-    def delete(self, *args, **kwargs):
-        data = super().delete(*args, **kwargs)
-        self._save_if_needed()
-        return data
-
-
+    def _save_if_needed(self):
+        self._backend.save(self._students)
 
 class StudentDBCSV(StudentDB):
     def __init__(self, filename: str = "students.csv") -> None:
         super().__init__()
-        self._filepath = Path(filename)
+        self._backend = CSVBackend(filename)
         self._load_from_file()
-    
-    def _load_from_file(self) -> None:
-        if self._filepath.exists():
-            try:
-                with open(self._filepath, 'r', encoding='utf-8', newline='') as f:
-                    reader = csv.reader(f)
 
-                    header = next(reader, None)
-                    if header is None:
-                        raise TableIncorrectCSVError("CSV файл пуст")
+    def _load_from_file(self):
+        self._students.clear()
+        students = self._backend.load()
+        self._students.extend(students)
 
-                    self._students.clear()
+    def _save_if_needed(self):
+        self._backend.save(self._students)
 
-                    for row in reader:
-                        if len(row) >= 5:
-                            student: StudentRecord = (
-                                int(row[0]),
-                                row[1].strip(),
-                                row[2].strip(),
-                                int(row[3]),
-                                row[4].strip(),
-                            )
-                            self._students.append(student)
 
-            except (ValueError, csv.Error) as e:
-                raise TableIncorrectCSVError(f"Ошибка при чтении CSV файла: {e}")
 
-    def _save_if_needed(self) -> None:
-        self._filepath.parent.mkdir(parents=True, exist_ok=True)
-
-        with open(self._filepath, 'w', encoding='utf-8', newline='') as f:
-            writer = csv.writer(f)
-
-            writer.writerow(['student_id', 'first_name', 'second_name', 'age', 'sex'])
-
-            for student in self._students:
-                writer.writerow(student)
-
-    def add(self, *args, **kwargs):
-        data = super().add(*args, **kwargs)
-        self._save_if_needed()
-        return data
-
-    def update(self, *args, **kwargs):
-        data = super().update(*args, **kwargs)
-        self._save_if_needed()
-        return data
-
-    def delete(self, *args, **kwargs):
-        data = super().delete(*args, **kwargs)
-        self._save_if_needed()
-        return data
