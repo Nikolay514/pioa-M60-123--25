@@ -83,7 +83,7 @@ class StudentDB:
                 continue
 
 
-            if (new_age <= 0) and isinstance(new_age,int):
+            if (new_age <= 0) and (new_age is not None):
                 raise TableValueError('Возраст не может быть отрицательным')
             new_rec = (
                 rec[0],
